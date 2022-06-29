@@ -1,4 +1,5 @@
 
+
 pipeline{
   agent {label 'node9'}
   tools{
@@ -7,7 +8,7 @@ pipeline{
   stages{
     stage("1.CodeClone"){
       steps{
-        git credentialsId: 'Github-Cred', url: 'https://github.com/luvdjoy/web-app.git"
+        git credentialsId: 'Github-Cred', url: 'https://github.com/team16flight/web-app.git'
       }
     }
     stage("2.Build"){
@@ -39,13 +40,14 @@ pipeline{
   }
     stage("7.deploytoPROD"){
       steps{
-        deploy adapters: [tomcat9(credentialsId: 'tomcat-cred', path: '', url: 'http://35.173.248.63:8080/')], contextPath: null, war: 'target/*.war'
+         deploy adapters: [tomcat9(credentialsId: 'tomcat-cred', path: '', url: 'http://35.173.248.63:8080/')], contextPath: null, war: 'target/*.war'
       }
     }
     stage("8.EmailNotification"){
       steps{
-        emailext body: 'Built successfully ', subject: 'Built successfully ', to: 'Info@acadalearning'
+        emailext body: 'This is Build Success', subject: 'Build Success', to: 'info@acadalearning.com'
       }
     }
   }
 }
+
