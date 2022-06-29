@@ -1,53 +1,43 @@
 
+node("node9")
+{
+    def MHD = tool name: "maven3.8.4"
+    stage ("1.initiation"){
+    sh "echo start of barclay application build"
+    }
+	stage ("2.Gitclone"){
 
-pipeline{
-  agent {label 'node9'}
-  tools{
-    maven "maven3.8.4"
-  }
-  stages{
-    stage("1.CodeClone"){
-      steps{
-        git credentialsId: 'Github-Cred', url: 'https://github.com/team16flight/web-app.git'
-      }
-    }
-    stage("2.Build"){
-      steps{
-        sh "mvn clean package"
-      }
-    }
-    stage("3.CodeQuality"){
-      steps{
-        sh "mvn sonar:sonar"
-      }
-    }
-    stage("4.Artifacts"){
-      steps{
-        sh "mvn deploy"
-      }
-    }
-    stage("5.DeploytoUAT"){
-      steps{
-        deploy adapters: [tomcat9(credentialsId: 'tomcat-cred', path: '', url: 'http://35.173.248.63:8080/')], contextPath: null, war: 'target/*.war'
-      }
-    }
-    stage("6.Approval"){
-      steps{
-        timeout(time:5, unit:'DAYS'){
-        input message: 'Approval for Production'
-      }
-    }
-  }
-    stage("7.deploytoPROD"){
-      steps{
-         deploy adapters: [tomcat9(credentialsId: 'tomcat-cred', path: '', url: 'http://35.173.248.63:8080/')], contextPath: null, war: 'target/*.war'
-      }
-    }
-    stage("8.EmailNotification"){
-      steps{
-        emailext body: 'This is Build Success', subject: 'Build Success', to: 'info@acadalearning.com'
-      }
-    }
-  }
+     sh "echo start git clone"
+     git "https://github.com/luvdjoy/web-app.git"
 }
-
+stage ("3.Build"){
+  sh "echo build the application with maven"
+  sh "${MHD}/bin/mvn package"
+}
+stage ("4.CodeQuality"){
+  sh "echo performing code test with sonarqube"
+  sh "${MHD}/bin/mvn sonar:sonar"
+}
+stage ("5.Artifactory"){
+  sh "echo Backup to Nexus"
+  sh "${MHD}/bin/mvn deploy"
+}
+stage ("6.DeploytoUAT"){
+  sh "echo deploying to application server"
+  deploy adapters: [tomcat9(credentialsId: 'tomcat-cred', path: '', url: 'http://35.173.248.63:8080/')], contextPath: null, war: 'target/*.war'
+}
+stage ("7.Approval"){
+  sh "echo Approval Needed"
+  timeout(time:5, unit:'DAYS'){
+  input message: 'Approval for Production'
+}
+stage ("8.DeploytoProd"){
+  sh "echo deploying to application server"
+  deploy adapters: [tomcat9(credentialsId: 'tomcat-cred', path: '', url: 'http://35.173.248.63:8080/')], contextPath: null, war: 'target/*.war'
+}
+stage ("9.EmailNotification"){
+  sh "echo send email notification to Devops team"
+  emailext body: 'Built successfully ', subject: 'Built successfully ', to: 'Info@acadalearning'
+}  
+}
+}
